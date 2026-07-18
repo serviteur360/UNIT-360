@@ -1,0 +1,257 @@
+import express from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import dotenv from 'dotenv';
+import { randomUUID } from 'crypto';
+
+dotenv.config();
+const app = express();
+const PORT = process.env.PORT || 5000;
+
+// ============================================
+// DONNÉES EN MÉMOIRE
+// ============================================
+const users = [
+  { 
+    id: randomUUID(), 
+    username: 'admin', 
+    email: 'admin@unite360.com', 
+    fullName: 'Administrateur',
+    role: 'admin',
+    createdAt: new Date().toISOString()
+  },
+  { 
+    id: randomUUID(), 
+    username: 'demo', 
+    email: 'demo@unite360.com', 
+    fullName: 'Utilisateur Démo',
+    role: 'user',
+    createdAt: new Date().toISOString()
+  }
+];
+
+const projects = [
+  { 
+    id: randomUUID(), 
+    title: 'Projet Alpha', 
+    description: 'Premier projet de démonstration',
+    status: 'active',
+    ownerId: users[0].id,
+    createdAt: new Date().toISOString()
+  },
+  { 
+    id: randomUUID(), 
+    title: 'Projet Beta', 
+    description: 'Deuxième projet en développement',
+    status: 'active',
+    ownerId: users[1].id,
+    createdAt: new Date().toISOString()
+  }
+];
+
+const messages = [
+  {
+    id: randomUUID(),
+    content: 'Bienvenue sur UNITÉ 360 ! 🚀',
+    senderId: users[0].id,
+    projectId: projects[0].id,
+    createdAt: new Date().toISOString()
+  }
+];
+
+// ============================================
+// MIDDLEWARE
+// ============================================
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
+app.use(cors({ 
+  origin: ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173'],
+  credentials: true 
+}));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// ============================================
+// ROUTES
+// ============================================
+
+// Health
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'OK', 
+    timestamp: new Date().toISOString(), 
+    version: '1.0.0',
+    uptime: process.uptime()
+  });
+});
+
+// ============================================
+// USERS
+// ============================================
+app.get('/api/users', (req, res) => {
+  res.json(users.map(u => ({
+    id: u.id,
+    username: u.username,
+    email: u.email,
+    fullName: u.fullName,
+    role: u.role,
+    createdAt: u.createdAt
+  })));
+});
+
+app.get('/api/users/:id', (req, res) => {
+  const user = users.find(u => u.id === req.params.id);
+  if (!user) return res.status(404).json({ error: 'Utilisateur non trouvé' });
+  res.json({
+    id: user.id,
+    username: user.username,
+    email: user.email,
+    fullName: user.fullName,
+    role: user.role,
+    createdAt: user.createdAt
+  });
+});
+
+app.post('/api/users', (req, res) => {
+  const { username, email, password, fullName, role } = req.body;
+  
+  if (!username || !email || !password || !fullName) {
+    return res.status(400).json({ error: 'Tous les champs sont requis' });
+  }
+  
+  if (users.find(u => u.email === email)) {
+    return res.status(400).json({ error: 'Email déjà utilisé' });
+  }
+  
+  const user = {
+    id: randomUUID(),
+    username,
+    email,
+    fullName,
+    role: role || 'user',
+    createdAt: new Date().toISOString()
+  };
+  users.push(user);
+  res.status(201).json(user);
+});
+
+app.put('/api/users/:id', (req, res) => {
+  const user = users.find(u => u.id === req.params.id);
+  if (!user) return res.status(404).json({ error: 'Utilisateur non trouvé' });
+  
+  const { fullName, role } = req.body;
+  if (fullName) user.fullName = fullName;
+  if (role) user.role = role;
+  
+  res.json(user);
+});
+
+app.delete('/api/users/:id', (req, res) => {
+  const index = users.findIndex(u => u.id === req.params.id);
+  if (index === -1) return res.status(404).json({ error: 'Utilisateur non trouvé' });
+  users.splice(index, 1);
+  res.json({ message: 'Utilisateur supprimé' });
+});
+
+// ============================================
+// PROJECTS
+// ============================================
+app.get('/api/projects', (req, res) => {
+  res.json(projects);
+});
+
+app.get('/api/projects/:id', (req, res) => {
+  const project = projects.find(p => p.id === req.params.id);
+  if (!project) return res.status(404).json({ error: 'Projet non trouvé' });
+  res.json(project);
+});
+
+app.post('/api/projects', (req, res) => {
+  const { title, description, ownerId } = req.body;
+  
+  if (!title || !ownerId) {
+    return res.status(400).json({ error: 'Titre et propriétaire requis' });
+  }
+  
+  const project = {
+    id: randomUUID(),
+    title,
+    description: description || '',
+    status: 'active',
+    ownerId,
+    createdAt: new Date().toISOString()
+  };
+  projects.push(project);
+  res.status(201).json(project);
+});
+
+app.put('/api/projects/:id', (req, res) => {
+  const project = projects.find(p => p.id === req.params.id);
+  if (!project) return res.status(404).json({ error: 'Projet non trouvé' });
+  
+  const { title, description, status } = req.body;
+  if (title) project.title = title;
+  if (description !== undefined) project.description = description;
+  if (status) project.status = status;
+  
+  res.json(project);
+});
+
+app.delete('/api/projects/:id', (req, res) => {
+  const index = projects.findIndex(p => p.id === req.params.id);
+  if (index === -1) return res.status(404).json({ error: 'Projet non trouvé' });
+  projects.splice(index, 1);
+  res.json({ message: 'Projet supprimé' });
+});
+
+// ============================================
+// MESSAGES
+// ============================================
+app.get('/api/messages/:projectId', (req, res) => {
+  const projectMessages = messages.filter(m => m.projectId === req.params.projectId);
+  res.json(projectMessages);
+});
+
+app.post('/api/messages', (req, res) => {
+  const { content, senderId, projectId } = req.body;
+  
+  if (!content || !senderId || !projectId) {
+    return res.status(400).json({ error: 'Contenu, expéditeur et projet requis' });
+  }
+  
+  const message = {
+    id: randomUUID(),
+    content,
+    senderId,
+    projectId,
+    createdAt: new Date().toISOString()
+  };
+  messages.push(message);
+  res.status(201).json(message);
+});
+
+// ============================================
+// STATS
+// ============================================
+app.get('/api/stats', (req, res) => {
+  res.json({
+    users: users.length,
+    projects: projects.length,
+    messages: messages.length,
+    uptime: process.uptime()
+  });
+});
+
+// ============================================
+// DÉMARRAGE
+// ============================================
+console.log('👤 Admin: admin@unite360.com / admin123');
+console.log('👤 Demo: demo@unite360.com / demo123');
+
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 UNITÉ 360 Backend sur http://localhost:${PORT}`);
+  console.log(`📡 Health: http://localhost:${PORT}/api/health`);
+  console.log(`👥 Users: http://localhost:${PORT}/api/users`);
+  console.log(`📂 Projects: http://localhost:${PORT}/api/projects`);
+});
