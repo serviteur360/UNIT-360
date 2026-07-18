@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: unite360-api
+    name: unit-360
     runtime: node
     buildCommand: cd backend && npm install
     startCommand: cd backend && npm start
@@ -8,13 +8,5 @@ services:
       - key: NODE_ENV
         value: production
       - key: PORT
-        value: 5000
-
-  - type: web
-    name: unite360-frontend
-    runtime: node
-    buildCommand: cd frontend && npm install && npm run build
-    startCommand: cd frontend && npm run dev
-    envVars:
-      - key: PORT
-        value: 5173
+        value: 10000
+    plan: free
