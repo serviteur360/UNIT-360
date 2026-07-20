@@ -2,15 +2,15 @@
   "name": "unite360-backend",
   "version": "1.0.0",
   "type": "module",
-  "scripts": { 
+  "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch src/server.js"
   },
   "dependencies": {
-    "express": "^4.18.2",
     "cors": "^2.8.5",
-    "helmet": "^7.1.0",
     "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "helmet": "^7.1.0",
     "uuid": "^9.0.0"
   }
 }
