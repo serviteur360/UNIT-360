@@ -2,11 +2,9 @@ services:
   - type: web
     name: unit-360
     runtime: node
-    buildCommand: cd backend && npm install
-    startCommand: cd backend && npm start
+    buildCommand: npm --prefix frontend install && npm --prefix frontend run build && npm --prefix backend install
+    startCommand: npm --prefix backend start
     envVars:
       - key: NODE_ENV
         value: production
-      - key: PORT
-        value: 10000
     plan: free

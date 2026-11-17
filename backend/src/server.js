@@ -1,68 +1,26 @@
+
 import authRoutes from "./routes/auth.js";
 import express from "express";
+import { randomUUID } from "node:crypto";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
-import { randomUUID } from 'crypto';
+import { users, projects, messages } from "./data/store.js";
 
 dotenv.config();
 const app = express();
 
-app.use("/api/auth", authRoutes);
 const PORT = process.env.PORT || 5000;
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const frontendDist = path.resolve(__dirname, "../../frontend/dist");
 
 // ============================================
-// DONNÉES EN MÉMOIRE
+// DONNÉES PARTAGÉES
 // ============================================
-const users = [
-  { 
-    id: randomUUID(), 
-    username: 'admin', 
-    email: 'admin@unite360.com', 
-    fullName: 'Administrateur',
-    role: 'admin',
-    createdAt: new Date().toISOString()
-  },
-  { 
-    id: randomUUID(), 
-    username: 'demo', 
-    email: 'demo@unite360.com', 
-    fullName: 'Utilisateur Démo',
-    role: 'user',
-    createdAt: new Date().toISOString()
-  }
-];
-
-const projects = [
-  { 
-    id: randomUUID(), 
-    title: 'Projet Alpha', 
-    description: 'Premier projet de démonstration',
-    status: 'active',
-    ownerId: users[0].id,
-    createdAt: new Date().toISOString()
-  },
-  { 
-    id: randomUUID(), 
-    title: 'Projet Beta', 
-    description: 'Deuxième projet en développement',
-    status: 'active',
-    ownerId: users[1].id,
-    createdAt: new Date().toISOString()
-  }
-];
-
-const messages = [
-  {
-    id: randomUUID(),
-    content: 'Bienvenue sur UNITÉ 360 ! 🚀',
-    senderId: users[0].id,
-    projectId: projects[0].id,
-    createdAt: new Date().toISOString()
-  }
-];
-
 // ============================================
 // MIDDLEWARE
 // ============================================
@@ -75,6 +33,7 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use("/api/auth", authRoutes);
 
 // ============================================
 // ROUTES
@@ -252,6 +211,17 @@ app.get('/api/stats', (req, res) => {
 // ============================================
 console.log('👤 Admin: admin@unite360.com / admin123');
 console.log('👤 Demo: demo@unite360.com / demo123');
+
+
+app.use(express.static(frontendDist));
+
+app.get("*", (req, res, next) => {
+  if (req.path.startsWith("/api/")) return next();
+
+  res.sendFile(path.join(frontendDist, "index.html"), err => {
+    if (err) next(err);
+  });
+});
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 UNITÉ 360 Backend sur http://localhost:${PORT}`);
