@@ -19,3 +19,5 @@ build/
 *.backup
 *.before-sqlite
 *.security-backup
+backend/.env
+backend/database.sqlite
