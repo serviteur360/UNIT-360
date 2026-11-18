@@ -21,3 +21,4 @@ build/
 *.security-backup
 backend/.env
 backend/database.sqlite
+*.avant-*
