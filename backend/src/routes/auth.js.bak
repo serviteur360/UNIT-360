@@ -1,0 +1,136 @@
+import express from "express";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+
+const router = express.Router();
+
+const users = [];
+
+// Inscription
+router.post("/register", async (req, res) => {
+  try {
+    const { username, email, password, fullName } = req.body;
+
+    if (!username || !email || !password || !fullName) {
+      return res.status(400).json({
+        error: "Tous les champs sont requis"
+      });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({
+        error: "Le mot de passe doit contenir au moins 6 caractères"
+      });
+    }
+
+    const existingUser = users.find(
+      user =>
+        user.email.toLowerCase() === email.toLowerCase() ||
+        user.username.toLowerCase() === username.toLowerCase()
+    );
+
+    if (existingUser) {
+      return res.status(409).json({
+        error: "Cet email ou ce nom d'utilisateur est déjà utilisé"
+      });
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    const user = {
+      id: Date.now().toString(),
+      username,
+      email: email.toLowerCase(),
+      fullName,
+      passwordHash,
+      role: "user",
+      createdAt: new Date().toISOString()
+    };
+
+    users.push(user);
+
+    res.status(201).json({
+      message: "Compte UNITÉ 360 créé avec succès",
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        fullName: user.fullName,
+        role: user.role
+      }
+    });
+
+  } catch (error) {
+    console.error("Erreur inscription:", error);
+    res.status(500).json({
+      error: "Erreur interne du serveur"
+    });
+  }
+});
+
+// Connexion
+router.post("/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({
+        error: "Email et mot de passe requis"
+      });
+    }
+
+    const user = users.find(
+      user => user.email === email.toLowerCase()
+    );
+
+    if (!user) {
+      return res.status(401).json({
+        error: "Email ou mot de passe incorrect"
+      });
+    }
+
+    const passwordCorrect = await bcrypt.compare(
+      password,
+      user.passwordHash
+    );
+
+    if (!passwordCorrect) {
+      return res.status(401).json({
+        error: "Email ou mot de passe incorrect"
+      });
+    }
+
+    const secret =
+      process.env.JWT_SECRET || "unite360-dev-secret-change-me";
+
+    const token = jwt.sign(
+      {
+        id: user.id,
+        email: user.email,
+        role: user.role
+      },
+      secret,
+      { expiresIn: "7d" }
+    );
+
+    res.json({
+      message: "Connexion UNITÉ 360 réussie",
+      token,
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        fullName: user.fullName,
+        role: user.role
+      }
+    });
+
+  } catch (error) {
+    console.error("Erreur connexion:", error);
+    res.status(500).json({
+      error: "Erreur interne du serveur"
+    });
+  }
+});
+
+export default router;

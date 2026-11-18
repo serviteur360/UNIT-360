@@ -1,0 +1,488 @@
+import { useState, useEffect } from 'react';
+
+function App() {
+  const [status, setStatus] = useState('Connexion...');
+  const [users, setUsers] = useState([]);
+  const [projects, setProjects] = useState([]);
+
+  useEffect(() => {
+    fetch('/api/health')
+      .then((res) => res.json())
+      .then((data) => {
+        setStatus(`✅ ${data.status} - ${data.version}`);
+      })
+      .catch(() => {
+        setStatus('❌ Backend hors ligne');
+      });
+
+    fetch('/api/users')
+      .then((res) => res.json())
+      .then(setUsers)
+      .catch(() => setUsers([]));
+
+    fetch('/api/projects')
+      .then((res) => res.json())
+      .then(setProjects)
+      .catch(() => setProjects([]));
+  }, []);
+
+  return (
+    <div style={styles.page}>
+
+      <header style={styles.header}>
+        <div>
+          <div style={styles.logo}>
+            UNITÉ <span style={styles.logoAccent}>360</span>
+          </div>
+
+          <div style={styles.tagline}>
+            Au sommet repose l’unité
+          </div>
+        </div>
+
+        <div style={styles.status}>
+          {status}
+        </div>
+      </header>
+
+      <main>
+
+        <section style={styles.hero}>
+          <div style={styles.heroContent}>
+
+            <p style={styles.eyebrow}>
+              L’ÉCOSYSTÈME HUMAIN INTELLIGENT
+            </p>
+
+            <h1 style={styles.heroTitle}>
+              Connecter les personnes,
+              <br />
+              les idées et les compétences.
+            </h1>
+
+            <p style={styles.heroText}>
+              UNITÉ 360 crée un espace où les personnes peuvent se rencontrer,
+              coopérer, créer et progresser ensemble pour produire un impact positif.
+            </p>
+
+            <div style={styles.buttons}>
+              <button style={styles.primaryButton}>
+                Commencer
+              </button>
+
+              <button style={styles.secondaryButton}>
+                Découvrir UNITÉ 360
+              </button>
+            </div>
+
+          </div>
+        </section>
+
+        <section style={styles.steps}>
+
+          <Step
+            number="01"
+            title="Rencontrer"
+            text="Découvrir des personnes, des idées et des opportunités."
+          />
+
+          <Step
+            number="02"
+            title="Coopérer"
+            text="Créer des relations autour de compétences et d’objectifs communs."
+          />
+
+          <Step
+            number="03"
+            title="Créer"
+            text="Transformer les idées et les compétences en projets."
+          />
+
+          <Step
+            number="04"
+            title="Progresser"
+            text="Apprendre, transmettre et construire un impact durable."
+          />
+
+        </section>
+
+        <section>
+
+          <h2 style={styles.sectionTitle}>
+            Un espace pour construire
+          </h2>
+
+          <div style={styles.modules}>
+
+            <Module
+              icon="👥"
+              title="Réseau"
+              text="Construisez votre réseau humain et professionnel."
+            />
+
+            <Module
+              icon="💡"
+              title="Idées"
+              text="Partagez vos idées et trouvez des personnes capables de les développer."
+            />
+
+            <Module
+              icon="🤝"
+              title="Coopération"
+              text="Transformez les connexions en collaborations concrètes."
+            />
+
+            <Module
+              icon="🚀"
+              title="Projets"
+              text="Créez et développez des projets avec votre communauté."
+            />
+
+            <Module
+              icon="🎓"
+              title="Académie"
+              text="Apprenez, développez vos compétences et transmettez votre savoir."
+            />
+
+            <Module
+              icon="🛒"
+              title="Marketplace"
+              text="Valorisez vos produits, services et compétences."
+            />
+
+          </div>
+
+        </section>
+
+        <section style={styles.dashboard}>
+
+          <div>
+            <p style={styles.eyebrow}>
+              UNITÉ 360 EN ACTION
+            </p>
+
+            <h2 style={styles.dashboardTitle}>
+              Une plateforme qui transforme la connexion
+              en capacité d’agir.
+            </h2>
+          </div>
+
+          <div style={styles.stats}>
+
+            <Stat
+              value={users.length}
+              label="Utilisateurs"
+            />
+
+            <Stat
+              value={projects.length}
+              label="Projets"
+            />
+
+            <Stat
+              value="360°"
+              label="Vision"
+            />
+
+          </div>
+
+        </section>
+
+      </main>
+
+      <footer style={styles.footer}>
+        <strong>UNITÉ 360</strong>
+
+        <span>
+          Connecter · Coopérer · Créer · Progresser
+        </span>
+      </footer>
+
+    </div>
+  );
+}
+
+
+function Step({ number, title, text }) {
+  return (
+    <div style={styles.step}>
+
+      <div style={styles.stepNumber}>
+        {number}
+      </div>
+
+      <h3 style={styles.stepTitle}>
+        {title}
+      </h3>
+
+      <p style={styles.stepText}>
+        {text}
+      </p>
+
+    </div>
+  );
+}
+
+
+function Module({ icon, title, text }) {
+  return (
+    <div style={styles.module}>
+
+      <div style={styles.moduleIcon}>
+        {icon}
+      </div>
+
+      <h3 style={styles.moduleTitle}>
+        {title}
+      </h3>
+
+      <p style={styles.moduleText}>
+        {text}
+      </p>
+
+    </div>
+  );
+}
+
+
+function Stat({ value, label }) {
+  return (
+    <div style={styles.stat}>
+
+      <strong style={styles.statValue}>
+        {value}
+      </strong>
+
+      <span style={styles.statLabel}>
+        {label}
+      </span>
+
+    </div>
+  );
+}
+
+
+const styles = {
+
+  page: {
+    minHeight: '100vh',
+    background: '#0b1020',
+    color: '#ffffff',
+    fontFamily: 'Arial, sans-serif'
+  },
+
+  header: {
+    maxWidth: '1200px',
+    margin: '0 auto',
+    padding: '24px 30px',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderBottom: '1px solid rgba(255,255,255,0.08)'
+  },
+
+  logo: {
+    fontSize: '26px',
+    fontWeight: '800',
+    letterSpacing: '2px'
+  },
+
+  logoAccent: {
+    color: '#8ea2ff'
+  },
+
+  tagline: {
+    marginTop: '5px',
+    color: '#9aa4bd',
+    fontSize: '13px'
+  },
+
+  status: {
+    color: '#9aa4bd',
+    fontSize: '13px'
+  },
+
+  hero: {
+    maxWidth: '1200px',
+    margin: '0 auto',
+    padding: '90px 30px 80px'
+  },
+
+  heroContent: {
+    maxWidth: '850px'
+  },
+
+  eyebrow: {
+    color: '#8ea2ff',
+    fontSize: '13px',
+    fontWeight: '700',
+    letterSpacing: '2px',
+    marginBottom: '20px'
+  },
+
+  heroTitle: {
+    fontSize: 'clamp(42px, 7vw, 78px)',
+    lineHeight: '1.05',
+    margin: '0 0 28px',
+    fontWeight: '800'
+  },
+
+  heroText: {
+    maxWidth: '720px',
+    fontSize: '20px',
+    lineHeight: '1.7',
+    color: '#b8c0d4',
+    marginBottom: '35px'
+  },
+
+  buttons: {
+    display: 'flex',
+    gap: '15px',
+    flexWrap: 'wrap'
+  },
+
+  primaryButton: {
+    border: 'none',
+    borderRadius: '10px',
+    padding: '15px 28px',
+    background: 'linear-gradient(135deg, #667eea, #764ba2)',
+    color: '#fff',
+    fontSize: '16px',
+    fontWeight: '700',
+    cursor: 'pointer'
+  },
+
+  secondaryButton: {
+    border: '1px solid #39415d',
+    borderRadius: '10px',
+    padding: '15px 28px',
+    background: 'transparent',
+    color: '#fff',
+    fontSize: '16px',
+    cursor: 'pointer'
+  },
+
+  steps: {
+    maxWidth: '1200px',
+    margin: '0 auto',
+    padding: '20px 30px 90px',
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+    gap: '18px'
+  },
+
+  step: {
+    padding: '28px',
+    background: '#131a2e',
+    border: '1px solid #202942',
+    borderRadius: '16px'
+  },
+
+  stepNumber: {
+    color: '#7f91ed',
+    fontWeight: '700',
+    marginBottom: '20px'
+  },
+
+  stepTitle: {
+    fontSize: '22px',
+    marginBottom: '12px'
+  },
+
+  stepText: {
+    color: '#9da7bd',
+    lineHeight: '1.6'
+  },
+
+  sectionTitle: {
+    maxWidth: '1200px',
+    margin: '0 auto 30px',
+    padding: '0 30px',
+    fontSize: '36px'
+  },
+
+  modules: {
+    maxWidth: '1200px',
+    margin: '0 auto',
+    padding: '0 30px 90px',
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+    gap: '18px'
+  },
+
+  module: {
+    padding: '30px',
+    background: '#11182b',
+    border: '1px solid #202942',
+    borderRadius: '16px'
+  },
+
+  moduleIcon: {
+    fontSize: '32px',
+    marginBottom: '18px'
+  },
+
+  moduleTitle: {
+    fontSize: '21px',
+    marginBottom: '10px'
+  },
+
+  moduleText: {
+    color: '#9da7bd',
+    lineHeight: '1.6'
+  },
+
+  dashboard: {
+    maxWidth: '1140px',
+    margin: '0 auto 80px',
+    padding: '45px',
+    borderRadius: '22px',
+    background: 'linear-gradient(135deg, #151e38, #17142d)',
+    border: '1px solid #2a3452',
+    display: 'grid',
+    gridTemplateColumns: '1fr auto',
+    gap: '40px',
+    alignItems: 'center'
+  },
+
+  dashboardTitle: {
+    fontSize: '34px',
+    lineHeight: '1.2',
+    margin: 0
+  },
+
+  stats: {
+    display: 'flex',
+    gap: '28px',
+    flexWrap: 'wrap'
+  },
+
+  stat: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '6px'
+  },
+
+  statValue: {
+    fontSize: '30px'
+  },
+
+  statLabel: {
+    color: '#9da7bd',
+    fontSize: '13px'
+  },
+
+  footer: {
+    padding: '30px',
+    borderTop: '1px solid #202942',
+    display: 'flex',
+    justifyContent: 'space-between',
+    gap: '20px',
+    flexWrap: 'wrap',
+    color: '#8993aa'
+  }
+
+};
+
+
+export default App;

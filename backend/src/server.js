@@ -11,6 +11,10 @@ import dotenv from 'dotenv';
 import { users, projects, messages } from "./data/store.js";
 
 dotenv.config();
+
+if (!process.env.JWT_SECRET) {
+  throw new Error("JWT_SECRET manquant : configurez la variable dans backend/.env ou Render.");
+}
 const app = express();
 
 const PORT = process.env.PORT || 5000;
@@ -209,8 +213,6 @@ app.get('/api/stats', (req, res) => {
 // ============================================
 // DÉMARRAGE
 // ============================================
-console.log('👤 Admin: admin@unite360.com / admin123');
-console.log('👤 Demo: demo@unite360.com / demo123');
 
 
 app.use(express.static(frontendDist));
