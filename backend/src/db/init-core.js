@@ -1,7 +1,7 @@
 import { DatabaseSync } from "node:sqlite";
-import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-const databasePath = path.resolve("backend/database.sqlite");
+const databasePath = fileURLToPath(new URL("../../database.sqlite", import.meta.url));
 
 const db = new DatabaseSync(databasePath);
 
@@ -94,6 +94,25 @@ CREATE TABLE IF NOT EXISTS audit_logs (
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (organization_id) REFERENCES organizations(id),
     FOREIGN KEY (actor_id) REFERENCES users(id)
+);
+
+CREATE TABLE IF NOT EXISTS connections (
+    id TEXT PRIMARY KEY,
+    requester_id TEXT NOT NULL,
+    recipient_id TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'pending'
+        CHECK (status IN ('pending', 'accepted', 'rejected')),
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CHECK (requester_id <> recipient_id),
+    FOREIGN KEY (requester_id) REFERENCES users(id),
+    FOREIGN KEY (recipient_id) REFERENCES users(id)
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_connections_pair
+ON connections (
+    CASE WHEN requester_id < recipient_id THEN requester_id ELSE recipient_id END,
+    CASE WHEN requester_id < recipient_id THEN recipient_id ELSE requester_id END
 );
 
 CREATE INDEX IF NOT EXISTS idx_memberships_user

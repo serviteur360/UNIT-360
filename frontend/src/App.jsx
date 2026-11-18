@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import ProfilePanel from './ProfilePanel.jsx';
+import NetworkPanel from './NetworkPanel.jsx';
 
 function App() {
   const [status, setStatus] = useState('Connexion...');
@@ -24,6 +26,8 @@ function App() {
   const [authError, setAuthError] = useState('');
   const [authMessage, setAuthMessage] = useState('');
   const [authLoading, setAuthLoading] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
+  const [showNetwork, setShowNetwork] = useState(false);
 
   useEffect(() => {
     checkBackend();
@@ -180,6 +184,7 @@ function App() {
     localStorage.removeItem('unite360_user');
 
     setCurrentUser(null);
+    setShowProfile(false);
     setAuthMode(null);
     setAuthError('');
     setAuthMessage('');
@@ -212,6 +217,13 @@ function App() {
               <span style={styles.userName}>
                 {currentUser.fullName}
               </span>
+
+              <button
+                onClick={() => setShowProfile(value => !value)}
+                style={styles.loginButton}
+              >
+                {showProfile ? 'Accueil' : 'Mon profil'}
+              </button>
 
               <button
                 onClick={logout}
@@ -279,6 +291,12 @@ function App() {
           </section>
         )}
 
+        {currentUser && showNetwork ? (
+          <NetworkPanel onBack={() => setShowNetwork(false)} />
+        ) : currentUser && showProfile ? (
+          <ProfilePanel onBack={() => setShowProfile(false)} />
+        ) : (
+          <>
         <section style={styles.hero}>
 
           <div style={styles.heroContent}>
@@ -376,6 +394,14 @@ function App() {
               icon="👥"
               title="Réseau"
               text="Construisez votre réseau humain et professionnel."
+              onClick={() => {
+                if (!currentUser) {
+                  setAuthMode("login");
+                  return;
+                }
+                setShowProfile(false);
+                setShowNetwork(true);
+              }}
             />
 
             <Module
@@ -448,6 +474,8 @@ function App() {
 
         </section>
 
+          </>
+        )}
       </main>
 
       <footer style={styles.footer}>
@@ -652,9 +680,17 @@ function Step({ number, title, text }) {
 }
 
 
-function Module({ icon, title, text }) {
+function Module({ icon, title, text, onClick }) {
   return (
-    <div style={styles.module}>
+    <div
+      style={{
+        ...styles.module,
+        cursor: onClick ? "pointer" : "default"
+      }}
+      onClick={onClick}
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
+    >
 
       <div style={styles.moduleIcon}>
         {icon}

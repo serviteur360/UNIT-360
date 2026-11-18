@@ -1,5 +1,8 @@
 
 import authRoutes from "./routes/auth.js";
+import profileRoutes from "./routes/profile.js";
+import searchRoutes from "./routes/search.js";
+import connectionsRoutes from "./routes/connections.js";
 import express from "express";
 import { randomUUID } from "node:crypto";
 import path from "node:path";
@@ -38,6 +41,9 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use("/api/auth", authRoutes);
+app.use("/api/profile", profileRoutes);
+app.use("/api/search", searchRoutes);
+app.use("/api/connections", connectionsRoutes);
 
 // ============================================
 // ROUTES
