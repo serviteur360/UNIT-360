@@ -7,3 +7,15 @@ node_modules/
 *.db
 dist/
 build/
+
+# Fichiers temporaires SQLite
+*.sqlite-shm
+*.sqlite-wal
+*.db-shm
+*.db-wal
+
+# Sauvegardes locales
+*.bak
+*.backup
+*.before-sqlite
+*.security-backup
