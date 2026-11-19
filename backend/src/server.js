@@ -11,7 +11,8 @@ import { fileURLToPath } from "node:url";
 import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
-import { users, projects, messages } from "./data/store.js";
+import { projects, messages } from "./data/store.js";
+import { db } from "./db/connection.js";
 
 dotenv.config();
 
@@ -60,71 +61,56 @@ app.get('/api/health', (req, res) => {
 });
 
 // ============================================
-// USERS
+// USERS - SOURCE UNIQUE : SQLITE
 // ============================================
+
 app.get('/api/users', (req, res) => {
-  res.json(users.map(u => ({
-    id: u.id,
-    username: u.username,
-    email: u.email,
-    fullName: u.fullName,
-    role: u.role,
-    createdAt: u.createdAt
-  })));
+  try {
+    const users = db.prepare(`
+      SELECT id, username, email, full_name, created_at
+      FROM users
+      WHERE status = 'active'
+      ORDER BY created_at DESC
+    `).all();
+
+    res.json(users.map(user => ({
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      fullName: user.full_name,
+      role: 'user',
+      createdAt: user.created_at
+    })));
+  } catch (error) {
+    console.error("Erreur lecture utilisateurs :", error);
+    res.status(500).json({ error: "Impossible de charger les utilisateurs." });
+  }
 });
 
 app.get('/api/users/:id', (req, res) => {
-  const user = users.find(u => u.id === req.params.id);
-  if (!user) return res.status(404).json({ error: 'Utilisateur non trouvé' });
-  res.json({
-    id: user.id,
-    username: user.username,
-    email: user.email,
-    fullName: user.fullName,
-    role: user.role,
-    createdAt: user.createdAt
-  });
-});
+  try {
+    const user = db.prepare(`
+      SELECT id, username, email, full_name, created_at
+      FROM users
+      WHERE id = ? AND status = 'active'
+    `).get(req.params.id);
 
-app.post('/api/users', (req, res) => {
-  const { username, email, password, fullName, role } = req.body;
-  
-  if (!username || !email || !password || !fullName) {
-    return res.status(400).json({ error: 'Tous les champs sont requis' });
+    if (!user) {
+      return res.status(404).json({ error: 'Utilisateur non trouvé' });
+    }
+
+    res.json({
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      fullName: user.full_name,
+      role: 'user',
+      createdAt: user.created_at
+    });
+  } catch (error) {
+    console.error("Erreur lecture utilisateur :", error);
+    res.status(500).json({ error: "Impossible de charger cet utilisateur." });
   }
-  
-  if (users.find(u => u.email === email)) {
-    return res.status(400).json({ error: 'Email déjà utilisé' });
-  }
-  
-  const user = {
-    id: randomUUID(),
-    username,
-    email,
-    fullName,
-    role: role || 'user',
-    createdAt: new Date().toISOString()
-  };
-  users.push(user);
-  res.status(201).json(user);
-});
-
-app.put('/api/users/:id', (req, res) => {
-  const user = users.find(u => u.id === req.params.id);
-  if (!user) return res.status(404).json({ error: 'Utilisateur non trouvé' });
-  
-  const { fullName, role } = req.body;
-  if (fullName) user.fullName = fullName;
-  if (role) user.role = role;
-  
-  res.json(user);
-});
-
-app.delete('/api/users/:id', (req, res) => {
-  const index = users.findIndex(u => u.id === req.params.id);
-  if (index === -1) return res.status(404).json({ error: 'Utilisateur non trouvé' });
-  users.splice(index, 1);
-  res.json({ message: 'Utilisateur supprimé' });
 });
 
 // ============================================
